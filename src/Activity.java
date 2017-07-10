@@ -18,9 +18,8 @@ public class Activity {
 		dataSource.setDatabaseName("subaru");
 	}
 
-	public void getData() {
+	public List<Event> getData() {
 		try {
-
 			conn = dataSource.getConnection();
 			stmt = conn.createStatement();
 			resultSet = stmt.executeQuery("\r\n" + "SELECT\r\n" + "  lse.event_number,\r\n"
@@ -56,28 +55,33 @@ public class Activity {
 			List<Event> events = new ArrayList<Event>();
 			while (resultSet.next()) {
 				if (resultSet != null) {
-					Event event = new Event();
-					event.event_number = resultSet.getDouble("event_number");
-					event.history_number = resultSet.getDouble("history_number");
-					event.progress_time = resultSet.getDouble("progress_time");
-					event.position = resultSet.getDouble("position");
-					event.event_action_number = resultSet.getDouble("event_action_number");
-					event.speed_number = resultSet.getDouble("speed_number");
-					event.school_contents_number = resultSet.getDouble("school_contents_number");
-					event.student_number = resultSet.getDouble("student_number");
-					event.subject_name = resultSet.getString("subject_name");
-					events.add(event);
+					
+					//Eliminating initial and closing value
+					if (resultSet.getDouble("event_action_number") != 0 && resultSet.getDouble("event_action_number") != 255) {
+						Event event = new Event();
+						event.event_number = resultSet.getDouble("event_number");
+						event.history_number = resultSet.getDouble("history_number");
+						event.progress_time = resultSet.getDouble("progress_time");
+						event.position = resultSet.getDouble("position");
+						event.event_action_number = resultSet.getDouble("event_action_number");
+						event.speed_number = resultSet.getDouble("speed_number");
+						event.school_contents_number = resultSet.getDouble("school_contents_number");
+						event.student_number = resultSet.getDouble("student_number");
+						event.subject_name = resultSet.getString("subject_name");
+						events.add(event);
+					}
 				}
 			}
 
 			resultSet.close();
 			stmt.close();
 			conn.close();
-			
-			int a = 4;
+
+			return events;
 
 		} catch (Exception ex) {
 			System.out.println(ex);
+			return null;
 		}
 	}
 }
