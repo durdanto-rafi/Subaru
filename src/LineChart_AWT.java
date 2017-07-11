@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -27,10 +28,15 @@ public class LineChart_AWT extends ApplicationFrame {
 	}
 
 	private DefaultCategoryDataset createDataset() {
-		Activity activity = new Activity();
-		activity.getData();
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-		dataset.addValue(15, "schoolsa", "1970");
+		
+		Activity activity = new Activity();
+		Map<Long, List<Event>> contents = activity.getData();
+		List<Event> events = contents.get((long)2765);
+		
+		for (Event event : events) {
+			dataset.addValue(15, "schoolsa", "1970");
+		}
 		dataset.addValue(30, "schools", "1980");
 		dataset.addValue(60, "schools", "1990");
 		dataset.addValue(120, "schools", "2000");

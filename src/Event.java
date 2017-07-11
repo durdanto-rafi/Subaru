@@ -11,4 +11,5 @@ public class Event {
 	public long student_number;
 	public String subject_name;
 	public String type;
+	public long duration;
 }
