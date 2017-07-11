@@ -1,6 +1,11 @@
 import java.sql.*;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
@@ -18,8 +23,12 @@ public class Activity {
 		dataSource.setDatabaseName("subaru");
 	}
 
-	public List<Event> getData() {
+	public Map<Long, List<Event>> getData() {
 		try {
+			System.out.println("Loading");
+			Instant queryStart = Instant.now();
+			Thread.sleep(10);
+
 			conn = dataSource.getConnection();
 			stmt = conn.createStatement();
 			resultSet = stmt.executeQuery("\r\n" + "SELECT\r\n" + "  lse.event_number,\r\n"
@@ -27,8 +36,8 @@ public class Activity {
 					+ "  lse.event_action_number,\r\n" + "  lse.speed_number,\r\n" + "  lse.volume_number,\r\n"
 					+ "  lss.school_contents_number,\r\n" + "  lss.student_number,\r\n"
 					+ "  lss.registered_datetime,\r\n" + "  lss.contents_download_datetime,\r\n"
-					+ "  lss.history_upload_datetime,\r\n" + "  lss.play_start_datetime,\r\n" + "  mse.event,\r\n"
-					+ "  mss.speed,\r\n" + "  tbs.name,\r\n" + "  tbsc.name as contents_name,\r\n"
+					+ "  lss.history_upload_datetime,\r\n" + "  lss.play_start_datetime,\r\n" + "  lss.duration,\r\n"
+					+ "  mse.event,\r\n" + "  mss.speed,\r\n" + "  tbs.name,\r\n" + "  tbsc.name as contents_name,\r\n"
 					+ "  tbss.name as subject_section_name,\r\n" + "  tbsub.name as subject_name\r\n" + "FROM\r\n"
 					+ " (SELECT\r\n" + "   history_number\r\n" + "   , school_contents_number\r\n"
 					+ "   , student_number\r\n" + "   , player3_code\r\n" + "   , key_word\r\n"
@@ -52,36 +61,111 @@ public class Activity {
 					+ "LEFT OUTER JOIN\r\n" + " tbl_school_subject as tbsub\r\n" + "ON\r\n"
 					+ " tbsub.school_subject_number = tbss.school_subject_number;");
 
-			List<Event> events = new ArrayList<Event>();
+			Instant queryEnd = Instant.now();
+			System.out.println("Process Time :" + Duration.between(queryStart, queryEnd));
+			// getHistory(resultSet);
+
+			Instant processStart = Instant.now();
+			Map<Long, List<Event>> groups = new HashMap<Long, List<Event>>();
 			while (resultSet.next()) {
 				if (resultSet != null) {
-					
-					//Eliminating initial and closing value
-					if (resultSet.getDouble("event_action_number") != 0 && resultSet.getDouble("event_action_number") != 255) {
-						Event event = new Event();
-						event.event_number = resultSet.getDouble("event_number");
-						event.history_number = resultSet.getDouble("history_number");
-						event.progress_time = resultSet.getDouble("progress_time");
-						event.position = resultSet.getDouble("position");
-						event.event_action_number = resultSet.getDouble("event_action_number");
-						event.speed_number = resultSet.getDouble("speed_number");
-						event.school_contents_number = resultSet.getDouble("school_contents_number");
-						event.student_number = resultSet.getDouble("student_number");
-						event.subject_name = resultSet.getString("subject_name");
-						events.add(event);
-					}
-				}
-			}
 
+					// Removing ending data
+					if (resultSet.getDouble("event_action_number") == 255)
+						continue;
+
+					// Removing initial data
+					if (resultSet.getDouble("progress_time") == 0 && resultSet.getDouble("position") == 0
+							&& resultSet.getDouble("event_action_number") == 0)
+						continue;
+
+					Event event = new Event();
+					event.duration = resultSet.getLong("duration");
+					event.event_number = resultSet.getLong("event_number");
+					event.history_number = resultSet.getLong("history_number");
+					event.progress_time = resultSet.getDouble("progress_time");
+					event.position = resultSet.getDouble("position");
+					event.event_action_number = resultSet.getLong("event_action_number");
+					event.speed_number = resultSet.getLong("speed_number");
+					event.school_contents_number = resultSet.getLong("school_contents_number");
+					event.student_number = resultSet.getLong("student_number");
+					event.subject_name = resultSet.getString("subject_name");
+
+					List<Event> group = groups.get(event.school_contents_number);
+					if (group == null) {
+						group = new ArrayList<Event>();
+						groups.put(event.school_contents_number, group);
+					}
+					group.add(event);
+				}
+				
+				Instant processEnd = Instant.now();
+				System.out.println("Process Time :" + Duration.between(processStart, processEnd));
+			}
+			
 			resultSet.close();
 			stmt.close();
 			conn.close();
-
-			return events;
+			return groups;
 
 		} catch (Exception ex) {
 			System.out.println(ex);
 			return null;
 		}
+	}
+
+	public LinkedHashMap<Long, List<Event>> getHistory(ResultSet resultSet) {
+		Instant processStart = Instant.now();
+		List<Event> events = new ArrayList<Event>();
+		LinkedHashMap<Long, List<Event>> histories = new LinkedHashMap<Long, List<Event>>();
+		Event previousEvent = new Event();
+
+		try {
+			while (resultSet.next()) {
+				if (resultSet != null) {
+
+					// Removing ending data
+					if (resultSet.getDouble("event_action_number") == 255)
+						continue;
+
+					// Removing initial data
+					if (resultSet.getDouble("progress_time") == 0 && resultSet.getDouble("position") == 0
+							&& resultSet.getDouble("event_action_number") == 0)
+						continue;
+
+					if (previousEvent.history_number != resultSet.getDouble("history_number")) {
+						histories.put(previousEvent.history_number, events);
+						events = new ArrayList<Event>();
+					}
+
+					Event event = new Event();
+					event.event_number = resultSet.getLong("event_number");
+					event.history_number = resultSet.getLong("history_number");
+					event.progress_time = resultSet.getDouble("progress_time");
+					event.position = resultSet.getDouble("position");
+					event.event_action_number = resultSet.getLong("event_action_number");
+					event.speed_number = resultSet.getLong("speed_number");
+					event.school_contents_number = resultSet.getLong("school_contents_number");
+					event.student_number = resultSet.getLong("student_number");
+					event.subject_name = resultSet.getString("subject_name");
+
+					// Pause eliminate
+					if (resultSet.getDouble("position") == previousEvent.position && previousEvent.speed_number == 0)
+						event.type = "1";
+
+					events.add(event);
+					previousEvent = event;
+				}
+			}
+			Instant processEnd = Instant.now();
+			System.out.println("Process Time :" + Duration.between(processStart, processEnd));
+
+			return histories;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+
 	}
 }
