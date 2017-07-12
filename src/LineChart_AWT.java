@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,16 +33,29 @@ public class LineChart_AWT extends ApplicationFrame {
 		
 		Activity activity = new Activity();
 		Map<Long, List<Event>> contents = activity.getData();
-		List<Event> events = contents.get((long)2765);
+		List<Event> events = contents.get((long)5533);
 		
+		// Group by position value of a single content
+		LinkedHashMap<Integer, List<Event>> pauses = new LinkedHashMap<Integer, List<Event>>();
 		for (Event event : events) {
-			dataset.addValue(15, "schoolsa", "1970");
+			if(event.type==1) {
+				List<Event> newEvent = new ArrayList<>();
+				if(pauses.get((int)event.position) != null) {
+					newEvent = pauses.get((int)event.position);
+				}
+				newEvent.add(event);
+				pauses.put((int)event.position, newEvent);
+			}
 		}
-		dataset.addValue(30, "schools", "1980");
-		dataset.addValue(60, "schools", "1990");
-		dataset.addValue(120, "schools", "2000");
-		dataset.addValue(240, "schoolsa", "2010");
-		dataset.addValue(3000, "schools", "2014");
+		
+		//Sorting in ascending order
+		List<Integer> sortedKeys = new ArrayList<>();
+		sortedKeys.addAll(pauses.keySet());
+		Collections.sort(sortedKeys);
+		
+		for (Integer position : sortedKeys){
+			dataset.addValue(pauses.get(position).size() , "Pause", position+"");
+		}
 		return dataset;
 	}
 

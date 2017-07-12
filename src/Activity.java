@@ -31,65 +31,95 @@ public class Activity {
 
 			conn = dataSource.getConnection();
 			stmt = conn.createStatement();
-			resultSet = stmt.executeQuery("\r\n" + "SELECT\r\n" + "  lse.event_number,\r\n"
-					+ "  lse.history_number,\r\n" + "  lse.progress_time,\r\n" + "  lse.position,\r\n"
-					+ "  lse.event_action_number,\r\n" + "  lse.speed_number,\r\n" + "  lse.volume_number,\r\n"
-					+ "  lss.school_contents_number,\r\n" + "  lss.student_number,\r\n"
-					+ "  lss.registered_datetime,\r\n" + "  lss.contents_download_datetime,\r\n"
-					+ "  lss.history_upload_datetime,\r\n" + "  lss.play_start_datetime,\r\n" + "  lss.duration,\r\n"
-					+ "  mse.event,\r\n" + "  mss.speed,\r\n" + "  tbs.name,\r\n" + "  tbsc.name as contents_name,\r\n"
-					+ "  tbss.name as subject_section_name,\r\n" + "  tbsub.name as subject_name\r\n" + "FROM\r\n"
-					+ " (SELECT\r\n" + "   history_number\r\n" + "   , school_contents_number\r\n"
-					+ "   , student_number\r\n" + "   , player3_code\r\n" + "   , key_word\r\n"
-					+ "   , registered_datetime\r\n" + "   , contents_download_datetime\r\n"
-					+ "   , history_upload_datetime\r\n" + "   , duration\r\n" + "   , play_start_datetime \r\n"
-					+ "  FROM\r\n" + "    log_school_contents_history_student \r\n" + "  WHERE\r\n"
-					+ "    contents_download_datetime between '2016-03-01 0:00:00' and '2016-08-31 0:00:00'\r\n"
-					+ "  AND \r\n" + "    history_upload_datetime is not null\r\n" + "  AND\r\n"
-					+ "    duration is not null\r\n" + " ) as lss\r\n" + "INNER JOIN\r\n"
-					+ " log_school_contents_history_student_event as lse\r\n" + "ON\r\n"
-					+ " lss.history_number = lse.history_number\r\n" + "LEFT OUTER JOIN\r\n"
-					+ " mst_event_action as mse\r\n" + "ON\r\n"
-					+ " lse.event_action_number = mse.event_action_number\r\n" + "LEFT OUTER JOIN\r\n"
-					+ " mst_speed as mss\r\n" + "ON\r\n" + " lse.speed_number = mss.speed_number\r\n"
-					+ "LEFT OUTER JOIN\r\n" + " tbl_student as tbs\r\n" + "ON\r\n"
-					+ " tbs.student_number = lss.student_number\r\n" + "LEFT OUTER JOIN\r\n"
-					+ " tbl_school_contents as tbsc\r\n" + "ON\r\n"
-					+ " lss.school_contents_number = tbsc.school_contents_number\r\n" + "LEFT OUTER JOIN\r\n"
-					+ " tbl_school_subject_section as tbss\r\n" + "ON\r\n"
-					+ " tbss.school_subject_section_number = tbsc.school_subject_section_number\r\n"
-					+ "LEFT OUTER JOIN\r\n" + " tbl_school_subject as tbsub\r\n" + "ON\r\n"
-					+ " tbsub.school_subject_number = tbss.school_subject_number;");
+			resultSet = stmt.executeQuery("SELECT\r\n" + 
+					"	lse.event_number,\r\n" + 
+					"	lse.history_number,\r\n" + 
+					"	lse.progress_time,\r\n" + 
+					"	lse.position,\r\n" + 
+					"	lse.event_action_number,\r\n" + 
+					"	lse.speed_number,\r\n" + 
+					"	lse.volume_number,\r\n" + 
+					"	lss.school_contents_number,\r\n" + 
+					"	lss.student_number,\r\n" + 
+					"	lss.registered_datetime,\r\n" + 
+					"	lss.contents_download_datetime,\r\n" + 
+					"	lss.history_upload_datetime,\r\n" + 
+					"	lss.play_start_datetime,\r\n" + 
+					"	lss.duration,\r\n" + 
+					"	mse. EVENT,\r\n" + 
+					"	mss.speed,\r\n" + 
+					"	tbs. NAME,\r\n" + 
+					"	tbsc. NAME AS contents_name,\r\n" + 
+					"	tbss. NAME AS subject_section_name,\r\n" + 
+					"	tbsub. NAME AS subject_name\r\n" + 
+					"FROM\r\n" + 
+					"	(\r\n" + 
+					"		SELECT\r\n" + 
+					"			history_number,\r\n" + 
+					"			school_contents_number,\r\n" + 
+					"			student_number,\r\n" + 
+					"			player3_code,\r\n" + 
+					"			key_word,\r\n" + 
+					"			registered_datetime,\r\n" + 
+					"			contents_download_datetime,\r\n" + 
+					"			history_upload_datetime,\r\n" + 
+					"			duration,\r\n" + 
+					"			play_start_datetime\r\n" + 
+					"		FROM\r\n" + 
+					"			log_school_contents_history_student\r\n" + 
+					"		WHERE\r\n" + 
+					"			contents_download_datetime BETWEEN '2016-03-01 0:00:00'\r\n" + 
+					"		AND '2016-08-31 0:00:00'\r\n" + 
+					"		AND history_upload_datetime IS NOT NULL\r\n" + 
+					"		AND duration IS NOT NULL\r\n" + 
+					"	) AS lss\r\n" + 
+					"INNER JOIN log_school_contents_history_student_event AS lse ON lss.history_number = lse.history_number\r\n" + 
+					"LEFT OUTER JOIN mst_event_action AS mse ON lse.event_action_number = mse.event_action_number\r\n" + 
+					"LEFT OUTER JOIN mst_speed AS mss ON lse.speed_number = mss.speed_number\r\n" + 
+					"LEFT OUTER JOIN tbl_student AS tbs ON tbs.student_number = lss.student_number\r\n" + 
+					"LEFT OUTER JOIN tbl_school_contents AS tbsc ON lss.school_contents_number = tbsc.school_contents_number\r\n" + 
+					"LEFT OUTER JOIN tbl_school_subject_section AS tbss ON tbss.school_subject_section_number = tbsc.school_subject_section_number\r\n" + 
+					"LEFT OUTER JOIN tbl_school_subject AS tbsub ON tbsub.school_subject_number = tbss.school_subject_number\r\n" + 
+					"WHERE\r\n" + 
+					"	(\r\n" + 
+					"		lse.progress_time <> 0\r\n" + 
+					"		AND lse.position <> 0\r\n" + 
+					"		AND lse.event_action_number <> 0\r\n" + 
+					"	)\r\n" + 
+					"AND lse.event_action_number <> 255");
 
-			Instant queryEnd = Instant.now();
-			System.out.println("Process Time :" + Duration.between(queryStart, queryEnd));
 			// getHistory(resultSet);
 
-			Instant processStart = Instant.now();
 			Map<Long, List<Event>> groups = new HashMap<Long, List<Event>>();
+			Event previousEvent = new Event();
 			while (resultSet.next()) {
 				if (resultSet != null) {
 
-					// Removing ending data
-					if (resultSet.getDouble("event_action_number") == 255)
-						continue;
-
-					// Removing initial data
-					if (resultSet.getDouble("progress_time") == 0 && resultSet.getDouble("position") == 0
-							&& resultSet.getDouble("event_action_number") == 0)
-						continue;
+//					// Removing ending data
+//					if (resultSet.getDouble("event_action_number") == 255)
+//						continue;
+//
+//					// Removing initial data
+//					if (resultSet.getDouble("progress_time") == 0 && resultSet.getDouble("position") == 0
+//							&& resultSet.getDouble("event_action_number") == 0)
+//						continue;
 
 					Event event = new Event();
-					event.duration = resultSet.getLong("duration");
+					event.duration = resultSet.getDouble("duration")/ 1000;
 					event.event_number = resultSet.getLong("event_number");
 					event.history_number = resultSet.getLong("history_number");
-					event.progress_time = resultSet.getDouble("progress_time");
-					event.position = resultSet.getDouble("position");
+					event.progress_time = resultSet.getDouble("progress_time")/ 1000;
+					event.position = resultSet.getDouble("position")/ 1000;
 					event.event_action_number = resultSet.getLong("event_action_number");
 					event.speed_number = resultSet.getLong("speed_number");
 					event.school_contents_number = resultSet.getLong("school_contents_number");
 					event.student_number = resultSet.getLong("student_number");
 					event.subject_name = resultSet.getString("subject_name");
+					
+					// Pause flagging
+					if (resultSet.getLong("speed_number") == 0 && resultSet.getLong("event_action_number") == 2)
+						event.type = 1;
+					
 
 					List<Event> group = groups.get(event.school_contents_number);
 					if (group == null) {
@@ -97,10 +127,11 @@ public class Activity {
 						groups.put(event.school_contents_number, group);
 					}
 					group.add(event);
+					//previousEvent = event;
 				}
 				
 				Instant processEnd = Instant.now();
-				System.out.println("Process Time :" + Duration.between(processStart, processEnd));
+				System.out.println("Process Time :" + Duration.between(queryStart, processEnd));
 			}
 			
 			resultSet.close();
@@ -141,8 +172,8 @@ public class Activity {
 					Event event = new Event();
 					event.event_number = resultSet.getLong("event_number");
 					event.history_number = resultSet.getLong("history_number");
-					event.progress_time = resultSet.getDouble("progress_time");
-					event.position = resultSet.getDouble("position");
+					event.progress_time = resultSet.getLong("progress_time");
+					event.position = resultSet.getLong("position");
 					event.event_action_number = resultSet.getLong("event_action_number");
 					event.speed_number = resultSet.getLong("speed_number");
 					event.school_contents_number = resultSet.getLong("school_contents_number");
@@ -151,7 +182,7 @@ public class Activity {
 
 					// Pause eliminate
 					if (resultSet.getDouble("position") == previousEvent.position && previousEvent.speed_number == 0)
-						event.type = "1";
+						event.type = 1;
 
 					events.add(event);
 					previousEvent = event;

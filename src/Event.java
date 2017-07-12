@@ -10,6 +10,6 @@ public class Event {
 	public long volume_number;
 	public long student_number;
 	public String subject_name;
-	public String type;
-	public long duration;
+	public int type;
+	public double duration;
 }
