@@ -22,13 +22,19 @@ import org.jfree.data.category.DefaultCategoryDataset;
 
 public class LineChart_AWT extends ApplicationFrame {
 	Map<Long, List<Event>> contents = new LinkedHashMap<Long, List<Event>>();
-	static long contentNumber = 5577;
+	static long contentNumber = 5533;
 	static int durationInSec = 0;
+
+	LinkedHashMap<Integer, List<Event>> pauses = new LinkedHashMap<Integer, List<Event>>();
+	LinkedHashMap<Integer, List<Event>> rewinds = new LinkedHashMap<Integer, List<Event>>();
 
 	public LineChart_AWT(String applicationTitle, String chartTitle) {
 		super(applicationTitle);
-		JFreeChart lineChart = ChartFactory.createLineChart(chartTitle, "Years", "Number of Schools", createDataset(),
-				PlotOrientation.VERTICAL, true, true, false);
+
+		// Getting application data
+		getData();
+
+		JFreeChart lineChart = ChartFactory.createLineChart(chartTitle, "Content Time " + getTime(durationInSec), "Action Count", createDataset(), PlotOrientation.VERTICAL, true, true, false);
 
 		ChartPanel chartPanel = new ChartPanel(lineChart);
 		chartPanel.setPreferredSize(new java.awt.Dimension(560, 367));
@@ -37,7 +43,43 @@ public class LineChart_AWT extends ApplicationFrame {
 
 	private DefaultCategoryDataset createDataset() {
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+		for (int i = 0; i < durationInSec; i++) {
+			// Printing rewind value
+			dataset.addValue(rewinds.get(i) == null ? 0 : rewinds.get(i).size(), rewinds.size() + " Rewind", getTime(i));
 
+			// Printing pause value
+			dataset.addValue(pauses.get(i) == null ? 0 : pauses.get(i).size(), pauses.size() + " Pause", getTime(i));
+		}
+		return dataset;
+	}
+
+	public static void main(String[] args) {
+		LineChart_AWT chart = new LineChart_AWT("LMS Data Statistics", "Content Number - " + contentNumber);
+		chart.pack();
+		RefineryUtilities.centerFrameOnScreen(chart);
+		chart.setVisible(true);
+	}
+
+	private String getTime(int second) {
+		return LocalTime.MIN.plusSeconds(second).toString();
+	}
+
+	private List<Integer> sortHashmap(LinkedHashMap<Integer, List<Event>> hashMap) {
+		List<Integer> sortedKeys = new ArrayList<>();
+		sortedKeys.addAll(hashMap.keySet());
+		Collections.sort(sortedKeys);
+		return sortedKeys;
+	}
+
+	public void actionPerformed(final ActionEvent e) {
+
+		if (e.getActionCommand().equals("ADD_DATASET")) {
+			// createDataset(5533);
+		}
+
+	}
+
+	private void getData() {
 		// Getting all database data in Hashmap
 		Activity activity = new Activity();
 		if (contents.size() == 0)
@@ -53,8 +95,6 @@ public class LineChart_AWT extends ApplicationFrame {
 		List<Event> events = contents.get(contentNumber);
 
 		if (events != null) {
-			LinkedHashMap<Integer, List<Event>> pauses = new LinkedHashMap<Integer, List<Event>>();
-			LinkedHashMap<Integer, List<Event>> rewinds = new LinkedHashMap<Integer, List<Event>>();
 
 			for (Event event : events) {
 				// Setting duration in second
@@ -81,42 +121,7 @@ public class LineChart_AWT extends ApplicationFrame {
 					rewinds.put((int) event.position, newEvent);
 				}
 			}
-
-			for (int i = 0; i < durationInSec; i++) {
-				// Printing rewind value
-				dataset.addValue(rewinds.get(i) == null ? 0 : rewinds.get(i).size(), rewinds.size() + " Rewind", getTime(i));
-				
-				// Printing pause value
-				dataset.addValue(pauses.get(i) == null ? 0 : pauses.get(i).size(), pauses.size() + " Pause", getTime(i));
-			}
 		}
-		return dataset;
-	}
-
-	public static void main(String[] args) {
-		LineChart_AWT chart = new LineChart_AWT("School Vs Years", "Numer of Schools vs years");
-		chart.pack();
-		RefineryUtilities.centerFrameOnScreen(chart);
-		chart.setVisible(true);
-	}
-
-	private String getTime(int second) {
-		return LocalTime.MIN.plusSeconds(second).toString();
-	}
-
-	private List<Integer> sortHashmap(LinkedHashMap<Integer, List<Event>> hashMap) {
-		List<Integer> sortedKeys = new ArrayList<>();
-		sortedKeys.addAll(hashMap.keySet());
-		Collections.sort(sortedKeys);
-		return sortedKeys;
-	}
-
-	public void actionPerformed(final ActionEvent e) {
-
-		if (e.getActionCommand().equals("ADD_DATASET")) {
-			// createDataset(5533);
-		}
-
 	}
 
 }
