@@ -27,6 +27,7 @@ import java.time.LocalTime;
 public class BarChart_AWT extends ApplicationFrame implements ActionListener {
 	Map<Long, List<Event>> contents = new LinkedHashMap<Long, List<Event>>();
 	static long contentNumber = 5577;
+	static long durationInSec = 0;
 	
 	public BarChart_AWT(String applicationTitle, String chartTitle) {
 		super(applicationTitle);
@@ -51,52 +52,58 @@ public class BarChart_AWT extends ApplicationFrame implements ActionListener {
 	}
 
 	private CategoryDataset createDataset() {
-		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-		
+		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
+		// Getting all database data in Hashmap
 		Activity activity = new Activity();
-		if(contents.size() == 0)
+		if (contents.size() == 0)
 			contents = activity.getData();
-		
+
+		// Getting key as Event count value as Content number in Hashmap
 		Map<Integer, Long> contentNumbers = new TreeMap<Integer, Long>();
-		for(Map.Entry<Long, List<Event>> entry : contents.entrySet()) {
+		for (Map.Entry<Long, List<Event>> entry : contents.entrySet()) {
 			contentNumbers.put(entry.getValue().size(), entry.getKey());
 		}
-		
+
+		// Getting one content data
 		List<Event> events = contents.get(contentNumber);
-		
-		if(events != null) {
-			// Group by position value of a single content
+
+		if (events != null) {
 			LinkedHashMap<Integer, List<Event>> pauses = new LinkedHashMap<Integer, List<Event>>();
 			LinkedHashMap<Integer, List<Event>> rewinds = new LinkedHashMap<Integer, List<Event>>();
-			
+
 			for (Event event : events) {
-				if(event.type==1) {
+				// Setting duration in second
+				if (durationInSec == 0)
+					durationInSec = (int) event.duration;
+
+				// Checking for pause value
+				if (event.type == 1) {
 					List<Event> newEvent = new ArrayList<>();
-					if(pauses.get((int)event.position) != null) {
-						newEvent = pauses.get((int)event.position);
+					if (pauses.get((int) event.position) != null) {
+						newEvent = pauses.get((int) event.position);
 					}
 					newEvent.add(event);
-					pauses.put((int)event.position, newEvent);
+					pauses.put((int) event.position, newEvent);
 				}
-				if(event.type==2) {
+
+				// Checking for rewind value
+				if (event.type == 2) {
 					List<Event> newEvent = new ArrayList<>();
-					if(rewinds.get((int)event.position) != null) {
-						newEvent = rewinds.get((int)event.position);
+					if (rewinds.get((int) event.position) != null) {
+						newEvent = rewinds.get((int) event.position);
 					}
 					newEvent.add(event);
-					rewinds.put((int)event.position, newEvent);
+					rewinds.put((int) event.position, newEvent);
 				}
 			}
-			
-			// Printing pause value
-			for (Integer position : sortHashmap(pauses)){
-				dataset.addValue(pauses.get(position).size() , pauses.size()+" Pause", getTime(position));
-			}
-			
-			// Printing rewind value
-			for (Integer position : sortHashmap(rewinds)){
-				dataset.addValue(rewinds.get(position).size() , rewinds.size()+" Rewind", getTime(position));
+
+			for (int i = 0; i < durationInSec; i++) {
+				// Printing rewind value
+				dataset.addValue(rewinds.get(i) == null ? 0 : rewinds.get(i).size(), rewinds.size() + " Rewind", getTime(i));
+				
+				// Printing pause value
+				dataset.addValue(pauses.get(i) == null ? 0 : pauses.get(i).size(), pauses.size() + " Pause", getTime(i));
 			}
 		}
 		return dataset;
