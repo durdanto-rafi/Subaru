@@ -24,9 +24,11 @@ public class LineChart_AWT extends ApplicationFrame {
 	Map<Long, List<Event>> contents = new LinkedHashMap<Long, List<Event>>();
 	static long contentNumber = 5533;
 	static int durationInSec = 0;
+	int pauseCount, rewindCount, forwardCount;
 
 	LinkedHashMap<Integer, List<Event>> pauses = new LinkedHashMap<Integer, List<Event>>();
 	LinkedHashMap<Integer, List<Event>> rewinds = new LinkedHashMap<Integer, List<Event>>();
+	LinkedHashMap<Integer, List<Event>> forwards = new LinkedHashMap<Integer, List<Event>>();
 
 	public LineChart_AWT(String applicationTitle, String chartTitle) {
 		super(applicationTitle);
@@ -45,10 +47,13 @@ public class LineChart_AWT extends ApplicationFrame {
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 		for (int i = 0; i < durationInSec; i++) {
 			// Printing rewind value
-			dataset.addValue(rewinds.get(i) == null ? 0 : rewinds.get(i).size(), rewinds.size() + " Rewind", getTime(i));
+			dataset.addValue(forwards.get(i) == null ? 0 : forwards.get(i).size(), forwardCount + " Forward", getTime(i));
+
+			// Printing rewind value
+			dataset.addValue(rewinds.get(i) == null ? 0 : rewinds.get(i).size(), rewindCount + " Rewind", getTime(i));
 
 			// Printing pause value
-			dataset.addValue(pauses.get(i) == null ? 0 : pauses.get(i).size(), pauses.size() + " Pause", getTime(i));
+			dataset.addValue(pauses.get(i) == null ? 0 : pauses.get(i).size(), pauseCount + " Pause", getTime(i));
 		}
 		return dataset;
 	}
@@ -103,6 +108,7 @@ public class LineChart_AWT extends ApplicationFrame {
 
 				// Checking for pause value
 				if (event.type == 1) {
+					pauseCount ++;
 					List<Event> newEvent = new ArrayList<>();
 					if (pauses.get((int) event.position) != null) {
 						newEvent = pauses.get((int) event.position);
@@ -113,12 +119,24 @@ public class LineChart_AWT extends ApplicationFrame {
 
 				// Checking for rewind value
 				if (event.type == 2) {
+					rewindCount ++;
 					List<Event> newEvent = new ArrayList<>();
 					if (rewinds.get((int) event.position) != null) {
 						newEvent = rewinds.get((int) event.position);
 					}
 					newEvent.add(event);
 					rewinds.put((int) event.position, newEvent);
+				}
+
+				// Checking for forward value
+				if (event.type == 3) {
+					forwardCount ++;
+					List<Event> newEvent = new ArrayList<>();
+					if (forwards.get((int) event.position) != null) {
+						newEvent = forwards.get((int) event.position);
+					}
+					newEvent.add(event);
+					forwards.put((int) event.position, newEvent);
 				}
 			}
 		}
